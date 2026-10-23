@@ -22,9 +22,13 @@ def _set_sqlite_pragmas(dbapi_conn, _record):
 def create_app(config: dict | None = None):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hsa.db"
+    app.config["SECRET_KEY"] = "a8f3b2e9c1d47f6a0b3e8c9d2f1a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a"
     if config:
         app.config.update(config)
     db.init_app(app)
+
+    from .routes import bp
+    app.register_blueprint(bp)
 
     with app.app_context():
         from . import models  # noqa: F401
