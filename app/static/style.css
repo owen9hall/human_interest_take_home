@@ -1,0 +1,63 @@
+body {
+	font-family: Arial, sans-serif;
+	line-height: 1.4;
+	margin: 0;
+}
+
+.container {
+	margin: 0 auto;
+	max-width: 1100px;
+	padding: 1rem;
+}
+
+section {
+	margin: 1.5rem 0;
+}
+
+form {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+}
+
+th,
+td {
+	border: 1px solid #bbb;
+	padding: 0.45rem;
+	text-align: left;
+	vertical-align: top;
+}
+
+.flash {
+	border: 1px solid;
+	margin: 0.5rem 0;
+	padding: 0.5rem;
+}
+
+.success {
+	color: #176b2c;
+}
+
+.warning {
+	color: #8a5a00;
+}
+
+.error {
+	color: #a12622;
+}
+
+td.approved {
+	color: #176b2c;
+	font-weight: bold;
+}
+
+td.declined {
+	color: #a12622;
+	font-weight: bold;
+}

@@ -1,0 +1,146 @@
+<!-- HSA account, card, purchase, simulation, and transaction controls. -->
+{% extends "base.html" %}
+
+{% block content %}
+<main>
+	<section>
+		<h2>Create account</h2>
+		<form method="post" action="{{ url_for('main.create_account') }}">
+			<label for="account_holder">Account holder</label>
+			<input id="account_holder" name="account_holder" type="text" required>
+			<button type="submit">Create account</button>
+		</form>
+	</section>
+
+	<section>
+		<h2>Accounts</h2>
+		{% if accounts %}
+			<table>
+				<thead>
+					<tr><th>ID</th><th>Holder</th><th>Balance</th><th>Cards</th><th>Actions</th></tr>
+				</thead>
+				<tbody>
+					{% for account in accounts %}
+						<tr>
+							<td>{{ account.id }}</td>
+							<td>{{ account.account_holder }}</td>
+							<td>{{ account.balance_cents|money }}</td>
+							<td>
+								{% if account.debit_cards %}
+									{% for card in account.debit_cards %}
+										<div>{{ card.card_number }}</div>
+									{% endfor %}
+								{% else %}
+									none
+								{% endif %}
+							</td>
+							<td>
+								<form method="post" action="{{ url_for('main.deposit', account_id=account.id) }}">
+									<label for="deposit-{{ account.id }}">Amount</label>
+									<input id="deposit-{{ account.id }}" name="amount" type="number" step="0.01" min="0.01" required>
+									<button type="submit">Deposit</button>
+								</form>
+								<form method="post" action="{{ url_for('main.issue_card', account_id=account.id) }}">
+									<button type="submit">Issue card</button>
+								</form>
+							</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>No accounts yet.</p>
+		{% endif %}
+	</section>
+
+	{% set cards = namespace(count=0) %}
+	{% for account in accounts %}
+		{% for card in account.debit_cards %}
+			{% set cards.count = cards.count + 1 %}
+		{% endfor %}
+	{% endfor %}
+
+	<section>
+		<h2>Make a purchase</h2>
+		{% if cards.count %}
+			<form method="post" action="{{ url_for('main.purchase') }}">
+				<label for="purchase-card">Card</label>
+				<select id="purchase-card" name="card_id" required>
+					{% for account in accounts %}
+						{% for card in account.debit_cards %}
+							<option value="{{ card.id }}">Account {{ account.id }} - {{ card.card_number }}</option>
+						{% endfor %}
+					{% endfor %}
+				</select>
+				<label for="purchase-amount">Amount</label>
+				<input id="purchase-amount" name="amount" type="number" step="0.01" min="0.01" required>
+				<label for="purchase-category">Category</label>
+				<select id="purchase-category" name="category" required>
+					{% for category in categories %}
+						<option value="{{ category.value }}">{{ category.value }}</option>
+					{% endfor %}
+				</select>
+				<button type="submit">Purchase</button>
+			</form>
+		{% else %}
+			<p>Issue a card first.</p>
+		{% endif %}
+	</section>
+
+	<section>
+		<h2>Simulate concurrent purchases</h2>
+		{% if cards.count %}
+			<p>Each amount runs as its own simultaneous purchase against the selected card's account.</p>
+			<form method="post" action="{{ url_for('main.simulate') }}">
+				<label for="simulate-card">Card</label>
+				<select id="simulate-card" name="card_id" required>
+					{% for account in accounts %}
+						{% for card in account.debit_cards %}
+							<option value="{{ card.id }}">Account {{ account.id }} - {{ card.card_number }}</option>
+						{% endfor %}
+					{% endfor %}
+				</select>
+				<label for="simulate-amounts">Amounts</label>
+				<input id="simulate-amounts" name="amounts" type="text" value="80, 50" required>
+				<label for="simulate-category">Category</label>
+				<select id="simulate-category" name="category" required>
+					{% for category in categories %}
+						<option value="{{ category.value }}">{{ category.value }}</option>
+					{% endfor %}
+				</select>
+				<button type="submit">Simulate</button>
+			</form>
+		{% else %}
+			<p>Issue a card first.</p>
+		{% endif %}
+	</section>
+
+	<section>
+		<h2>Transactions</h2>
+		{% if transactions %}
+			<table>
+				<thead>
+					<tr><th>ID</th><th>Account</th><th>Card</th><th>Type</th><th>Category</th><th>Amount</th><th>Status</th><th>Reason</th><th>Time</th></tr>
+				</thead>
+				<tbody>
+					{% for transaction in transactions %}
+						<tr>
+							<td>{{ transaction.transaction_id }}</td>
+							<td>{{ transaction.account_id }}</td>
+							<td>{{ transaction.card.card_number if transaction.card else '-' }}</td>
+							<td>{{ transaction.type.value }}</td>
+							<td>{{ transaction.category.value if transaction.category else '-' }}</td>
+							<td>{{ transaction.amount_cents|money }}</td>
+							<td class="{{ transaction.status.value|lower }}">{{ transaction.status.value }}</td>
+							<td>{{ transaction.decline_reason or '-' }}</td>
+							<td>{{ transaction.created_at }}</td>
+						</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+		{% else %}
+			<p>No transactions yet.</p>
+		{% endif %}
+	</section>
+</main>
+{% endblock %}
