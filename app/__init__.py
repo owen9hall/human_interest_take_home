@@ -2,18 +2,32 @@
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
+import sqlite3
 
 db = SQLAlchemy()
 
 
-def create_app():
+@event.listens_for(Engine, "connect")
+def _set_sqlite_pragmas(dbapi_conn, _record):
+    if isinstance(dbapi_conn, sqlite3.Connection):
+        cur = dbapi_conn.cursor()
+        cur.execute("PRAGMA foreign_keys=ON") # enable foreign key enforcement
+        cur.execute("PRAGMA journal_mode=WAL") # improve performance for concurrent writes
+        cur.execute("PRAGMA busy_timeout=5000") # 5 second timeout for db operations
+        cur.close()
+
+
+def create_app(config: dict | None = None):
     app = Flask(__name__)
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///hsa.db"
+    if config:
+        app.config.update(config)
     db.init_app(app)
 
     with app.app_context():
-        from . import models 
-
+        from . import models  # noqa: F401
         db.create_all()
 
     return app
