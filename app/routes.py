@@ -25,6 +25,7 @@ def to_cents(text: str) -> int:
 
 
 def money_text(cents: int | None) -> str:
+    """Converts integer cents to dollar string"""
     if cents is None:
         return ""
     sign = "-" if cents < 0 else ""
@@ -35,6 +36,7 @@ def money_text(cents: int | None) -> str:
 
 @bp.app_template_filter("money")
 def money(cents: int | None) -> str:
+    """Jinja filter to format integer cents as a dollar string"""
     return money_text(cents)
 
 
@@ -117,6 +119,7 @@ def purchase():
 def simulate():
     """Process concurrent purchases against one card."""
     try:
+        # gather and validate inputs
         card_id = int(request.form.get("card_id", ""))
         amount_texts = request.form.get("amounts", "").split(",")
         if not 1 <= len(amount_texts) <= 50:
@@ -136,6 +139,7 @@ def simulate():
         errors: list[BaseException] = []
 
         def worker(index: int, amount: int) -> None:
+            """Worker thread to process a purchase and store the result."""
             try:
                 with app.app_context():
                     barrier.wait(timeout=10)
@@ -145,6 +149,7 @@ def simulate():
                 errors.append(exc)
                 barrier.abort()
 
+        # spawn a thread for each purchase and wait for them to finish
         threads = [
             threading.Thread(target=worker, args=(index, amount), daemon=True)
             for index, amount in enumerate(amounts)
@@ -158,6 +163,7 @@ def simulate():
         if errors:
             raise ValueError(str(errors[0]))
 
+        # summarize results and flash a message
         balance = db.session.scalar(
             select(HsaAccount.balance_cents).where(HsaAccount.id == account_id)
         )

@@ -40,6 +40,7 @@ def deposit(account_id: int, amount_cents: int) -> Transaction:
     if account is None:
         raise ServiceError("Unknown account")
 
+    # making the update as a db query so it is atomic
     db.session.execute(
         update(HsaAccount)
         .where(HsaAccount.id == account_id)
@@ -104,6 +105,7 @@ def process_purchase(card_id: int, amount_cents: int, category: Category) -> Tra
         db.session.commit()
         return txn
 
+    # making the update as a db query so it is atomic
     result = db.session.execute(
         update(HsaAccount)
         .where(

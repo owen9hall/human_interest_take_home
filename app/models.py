@@ -12,22 +12,26 @@ from . import db
 
 
 class TransactionType(str, Enum):
+    """A transaction can be a deposit or purchase"""
     DEPOSIT = "DEPOSIT"
     PURCHASE = "PURCHASE"
 
 
 class TransactionStatus(str, Enum):
+    """Transactions are either approved or declined"""
     APPROVED = "APPROVED"
     DECLINED = "DECLINED"
 
 
 class Category(str, Enum):
+    """List of all currently supported purchase categories"""
     PHARMACY = "PHARMACY"
     HOSPITAL = "HOSPITAL"
     RESTAURANT = "RESTAURANT"
     ELECTRONICS = "ELECTRONICS"
 
 
+"""Purchase categories that will result in an approved transaction (assuming sufficient funds)"""
 QUALIFIED_CATEGORIES = {Category.PHARMACY, Category.HOSPITAL}
 
 
